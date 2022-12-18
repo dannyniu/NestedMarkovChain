@@ -8,8 +8,7 @@ class NestedMarkovChain:
         defdat = list(desc_obj)
         if not NestedMarkovChain.lint(defdat):
             raise ValueError
-        else:
-            self.desc = defdat
+        self.desc = defdat
 
     def __repr__(self):
         return 'NestedMarkovChain({})'.format(repr(self.desc))
@@ -79,19 +78,20 @@ class NestedMarkovChain:
 def NMCFactory(n):
     while True:
         cand = [
-            { 'sym': None, 'xsit': [
-                randbelow(256) for i in range(n+1)
-            ] } for j in range(n+1)
+            { 'sym': None, 'xsit': [ 0 ] * (n+1) } for j in range(n+1)
         ]
+        for i in range(n+1):
+            cand[i]['xsit'][(i*53+23)%n] = 23
+            cand[i]['xsit'][(i*53+43)%n] = 11
+            cand[i]['xsit'][(i*53+83)%n] = 5
+            cand[i]['xsit'][n] = 2
         if NestedMarkovChain.lint(cand):
             return cand
 
-if __name__ == "__main__":
-    desc = NMCFactory(5)
-    desc[0]['sym'] = NestedMarkovChain(NMCFactory(256))
-    desc[1]['sym'] = NestedMarkovChain(NMCFactory(256))
-    desc[2]['sym'] = NestedMarkovChain(NMCFactory(256))
-    #print(repr(desc))
+def main_nested():
+    desc = NMCFactory(16)
+    for i in range(10):
+        desc[i]['sym'] = NestedMarkovChain(NMCFactory(256))
     nmc = NestedMarkovChain(desc)
     for mc in nmc:
         if isinstance(mc, NestedMarkovChain):
@@ -102,3 +102,11 @@ if __name__ == "__main__":
             for u in dyn:
                 sys.stdout.buffer.write(bytes([u]))
 
+def main_plain():
+    desc = NMCFactory(256)
+    mc = NestedMarkovChain(desc)
+    for v in mc:
+        sys.stdout.buffer.write(bytes([v]))
+
+if __name__ == "__main__":
+    main_nested()
